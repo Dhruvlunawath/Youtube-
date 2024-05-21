@@ -10,6 +10,10 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import seaborn as sns
 
 def scrape_youtube_comments(video_url, progress_bar):
+    if video_url is None:
+        st.warning('Please enter a YouTube Video URL.')
+        return []
+
     service = Service(ChromeDriverManager().install())
     options = webdriver.ChromeOptions()
     options.add_argument("--headless")
@@ -33,6 +37,7 @@ def scrape_youtube_comments(video_url, progress_bar):
 
     driver.quit()
     return comments
+
 
 
 def classify_comments(comments):

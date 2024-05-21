@@ -1,0 +1,8 @@
+streamlit
+selenium
+webdriver-manager
+pandas
+matplotlib
+seaborn
+nltk
+vaderSentiment

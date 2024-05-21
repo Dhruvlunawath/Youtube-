@@ -1,9 +1,6 @@
 import streamlit as st
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from webdriver_manager.chrome import ChromeDriverManager
+import requests
+from bs4 import BeautifulSoup
 import pandas as pd
 import time
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
@@ -14,31 +11,20 @@ def scrape_youtube_comments(video_url, progress_bar):
         st.warning('Please enter a YouTube Video URL.')
         return []
 
-    service = Service(ChromeDriverManager().install())
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    options.add_argument("--mute-audio")
-    driver = webdriver.Chrome(service=service, options=options)
-
-    driver.get(video_url)
-
-    total_iterations = 50  # Total number of scroll iterations
-    for i in range(total_iterations):
-        driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.END)
-        time.sleep(2)
-        progress = (i + 1) / total_iterations  # Calculate progress within [0.0, 1.0] range
-        progress_bar.progress(progress)  # Update progress bar
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    response = requests.get(video_url, headers=headers)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    # Find the element containing comments (you might need to inspect the YouTube page to get the correct selector)
+    comment_elems = soup.select('#content #content-text')
 
     comments = []
-    comment_elems = driver.find_elements(By.CSS_SELECTOR, "#content #content-text")
-
     for comment_elem in comment_elems:
         comments.append(comment_elem.text)
 
-    driver.quit()
     return comments
-
-
 
 def classify_comments(comments):
     analyzer = SentimentIntensityAnalyzer()
@@ -70,12 +56,11 @@ st.title('YouTube Comment Sentiment Analysis')
 
 video_url = st.text_input('Enter YouTube Video URL:')
 if st.button('Analyze'):
-    if video_url.strip():  # Check if video_url is not empty
+    if video_url:
         progress_bar = st.progress(0)  # Initialize progress bar
         comments = scrape_youtube_comments(video_url, progress_bar)
         labeled_comments = classify_comments(comments)
         df = comments_to_dataframe(labeled_comments)
         visualise(df)
     else:
-        st.warning('Please enter a valid YouTube Video URL.')
-
+        st.warning('Please enter a YouTube Video URL.')

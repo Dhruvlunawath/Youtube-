@@ -70,11 +70,12 @@ st.title('YouTube Comment Sentiment Analysis')
 
 video_url = st.text_input('Enter YouTube Video URL:')
 if st.button('Analyze'):
-    if video_url:
+    if video_url.strip():  # Check if video_url is not empty
         progress_bar = st.progress(0)  # Initialize progress bar
         comments = scrape_youtube_comments(video_url, progress_bar)
         labeled_comments = classify_comments(comments)
         df = comments_to_dataframe(labeled_comments)
         visualise(df)
     else:
-        st.warning('Please enter a YouTube Video URL.')
+        st.warning('Please enter a valid YouTube Video URL.')
+
